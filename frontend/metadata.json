@@ -1,0 +1,6 @@
+{
+  "name": "AI Gateway Hub",
+  "description": "Intelligent API Gateway with AI-powered Traffic Analysis, Security Insights, Cloud-Native Deployment, and DevSecOps Automation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
