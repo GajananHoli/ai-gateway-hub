@@ -25,10 +25,10 @@
     <modules>
         <module>common-library</module>
         <module>gateway-service</module>
-<!--        <module>user-service</module>
-        <module>product-service</module>
-        <module>ai-service</module>
-        <module>notification-service</module>-->
+        <module>user-service</module>
+        <!--  <module>product-service</module>
+         <module>ai-service</module>
+         <module>notification-service</module>-->
     </modules>
 
     <properties>
