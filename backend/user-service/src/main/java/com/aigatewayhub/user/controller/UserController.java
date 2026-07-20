@@ -48,11 +48,20 @@ public class UserController {
         return userService.getAllUsers();
     }
    */
+@Operation(
+        summary = "Get User By ID",
+        description = "Returns a user by its unique identifier"
+)
+@ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User found"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+})
     @GetMapping(params = "id")
     public UserResponse getUserById(@RequestParam Long id) {
         return userService.getUserById(id);
     }
 
+    @Operation(summary = "Update User")
     @PutMapping("/{id}")
     public UserResponse updateUser(
             @PathVariable Long id,
@@ -61,12 +70,14 @@ public class UserController {
         return userService.updateUser(id, request);
     }
 
+    @Operation(summary = "Delete User")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
 
+    @Operation(summary = "Get All Users")
     @GetMapping
     public Page<UserResponse> getAllUsers(
             @RequestParam(required = false) Role role,
