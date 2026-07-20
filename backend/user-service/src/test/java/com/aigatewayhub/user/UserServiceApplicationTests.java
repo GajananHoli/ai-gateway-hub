@@ -1,4 +1,4 @@
-package com.aigatewayhub.user_service;
+package com.aigatewayhub.user;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

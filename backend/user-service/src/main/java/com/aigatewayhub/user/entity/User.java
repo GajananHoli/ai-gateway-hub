@@ -1,7 +1,7 @@
 package com.aigatewayhub.user.entity;
 
-import com.aigatewayhub.user.enums.Role;
-import com.aigatewayhub.user.enums.UserStatus;
+import com.aigatewayhub.user.entity.enums.Role;
+import com.aigatewayhub.user.entity.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

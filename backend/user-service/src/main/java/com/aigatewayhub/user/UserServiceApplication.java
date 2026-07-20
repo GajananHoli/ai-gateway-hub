@@ -1,4 +1,4 @@
-package com.aigatewayhub.user_service;
+package com.aigatewayhub.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.aigatewayhub.user.enums;
+package com.aigatewayhub.user.entity.enums;
 
 public enum UserStatus {
     ACTIVE,
