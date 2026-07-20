@@ -10,9 +10,9 @@ import com.aigatewayhub.user.exception.UserNotFoundException;
 import com.aigatewayhub.user.repository.UserRepository;
 import com.aigatewayhub.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,14 +40,14 @@ public class UserServiceImpl implements UserService {
 
         return mapToResponse(savedUser);
     }
-    @Override
+/*    @Override
     public List<UserResponse> getAllUsers() {
 
         return userRepository.findAll()
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
-    }
+    }*/
     @Override
     public UserResponse getUserById(Long id) {
 
@@ -82,6 +82,41 @@ public class UserServiceImpl implements UserService {
                         new UserNotFoundException(id));
 
         userRepository.delete(user);
+    }
+    @Override
+    public Page<UserResponse> getAllUsers(
+            Role role,
+            UserStatus status,
+            String email,
+            String name,
+            Pageable pageable) {
+
+        if (role != null) {
+            return userRepository.findByRole(role, pageable)
+                    .map(this::mapToResponse);
+        }
+
+        if (status != null) {
+            return userRepository.findByStatus(status, pageable)
+                    .map(this::mapToResponse);
+        }
+
+        if (email != null && !email.isBlank()) {
+            return userRepository.findByEmailContainingIgnoreCase(email, pageable)
+                    .map(this::mapToResponse);
+        }
+
+        if (name != null && !name.isBlank()) {
+            return userRepository
+                    .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
+                            name,
+                            name,
+                            pageable)
+                    .map(this::mapToResponse);
+        }
+
+        return userRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
     private UserResponse mapToResponse(User user) {
 
