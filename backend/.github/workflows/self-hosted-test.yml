@@ -1,0 +1,34 @@
+name: Self Hosted Runner Test
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, windows, x64]
+
+    steps:
+      - name: Runner information
+        shell: powershell
+        run: |
+          Write-Host "================================="
+          Write-Host "Self-hosted runner is working!"
+          Write-Host "================================="
+
+          Write-Host "Computer:"
+          $env:DESKTOP-K9LU3UU
+
+          Write-Host "User:"
+          $env:admin
+
+          Write-Host "Java:"
+          java -version
+
+          Write-Host "Maven:"
+          .\mvnw.cmd -version
+
+          Write-Host "Docker:"
+          docker version
