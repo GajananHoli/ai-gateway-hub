@@ -15,20 +15,28 @@ jobs:
         shell: powershell
         run: |
           Write-Host "================================="
-          Write-Host "Self-hosted runner is working!"
+          Write-Host "Self-Hosted Runner Test"
+          Write-Host "================================="
+          Write-Host "Runner Name: $env:RUNNER_NAME"
+          Write-Host "Runner OS: $env:RUNNER_OS"
+          Write-Host "Runner Architecture: $env:RUNNER_ARCH"
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+          Write-Host "Repository: $env:GITHUB_REPOSITORY"
+          Write-Host "Branch: $env:GITHUB_REF_NAME"
           Write-Host "================================="
 
-          Write-Host "Computer:"
-          $env:DESKTOP-K9LU3UU
+      - name: Test PowerShell
+        shell: powershell
+        run: |
+          Write-Host "PowerShell is working!"
+          Write-Host "Computer: $env:COMPUTERNAME"
 
-          Write-Host "User:"
-          $env:admin
-
-          Write-Host "Java:"
+      - name: Test Java
+        shell: powershell
+        run: |
           java -version
 
-          Write-Host "Maven:"
-          .\mvnw.cmd -version
-
-          Write-Host "Docker:"
-          docker version
+      - name: Test Maven
+        shell: powershell
+        run: |
+          mvn -version
