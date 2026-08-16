@@ -1,0 +1,52 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test-sonar:
+    runs-on: self-hosted
+
+    steps:
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Verify Java
+        shell: powershell
+        run: |
+          java -version
+
+      - name: Verify Maven
+        working-directory: backend
+        shell: powershell
+        run: |
+          .\mvnw.cmd -version
+
+      - name: Clean and test
+        working-directory: backend
+        shell: powershell
+        run: |
+          .\mvnw.cmd clean test
+
+      - name: Generate JaCoCo report
+        working-directory: backend
+        shell: powershell
+        run: |
+          .\mvnw.cmd jacoco:report
+
+      - name: Verify JaCoCo report
+        working-directory: backend
+        shell: powershell
+        run: |
+          if (!(Test-Path ".\user-service\target\site\jacoco\index.html")) {
+            Write-Error "JaCoCo report was not generated."
+            exit 1
+          }
+
+          Write-Host "JaCoCo report generated successfully."
