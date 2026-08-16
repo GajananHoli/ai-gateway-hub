@@ -20,23 +20,25 @@ jobs:
           Write-Host "Runner Name: $env:RUNNER_NAME"
           Write-Host "Runner OS: $env:RUNNER_OS"
           Write-Host "Runner Architecture: $env:RUNNER_ARCH"
+          Write-Host "Computer: $env:COMPUTERNAME"
           Write-Host "Workspace: $env:GITHUB_WORKSPACE"
-          Write-Host "Repository: $env:GITHUB_REPOSITORY"
-          Write-Host "Branch: $env:GITHUB_REF_NAME"
           Write-Host "================================="
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Test PowerShell
         shell: powershell
         run: |
           Write-Host "PowerShell is working!"
-          Write-Host "Computer: $env:COMPUTERNAME"
 
       - name: Test Java
         shell: powershell
         run: |
           java -version
 
-      - name: Test Maven
+      - name: Test Maven Wrapper
+        working-directory: backend
         shell: powershell
         run: |
-          mvn -version
+          .\mvnw.cmd -version
