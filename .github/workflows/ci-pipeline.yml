@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-test-sonar:
@@ -22,30 +23,29 @@ jobs:
         run: |
           java -version
 
-      - name: Verify Maven
+      - name: Verify Maven Wrapper
         working-directory: backend
         shell: powershell
         run: |
           .\mvnw.cmd -version
 
-      - name: Clean and test
+      - name: Run tests and generate JaCoCo report
         working-directory: backend
         shell: powershell
         run: |
-          .\mvnw.cmd clean test
-
-      - name: Generate JaCoCo report
-        working-directory: backend
-        shell: powershell
-        run: |
-          .\mvnw.cmd jacoco:report
+          .\mvnw.cmd clean jacoco:prepare-agent test jacoco:report
 
       - name: Verify JaCoCo report
         working-directory: backend
         shell: powershell
         run: |
+          if (!(Test-Path ".\user-service\target\jacoco.exec")) {
+            Write-Error "JaCoCo execution data was not generated."
+            exit 1
+          }
+
           if (!(Test-Path ".\user-service\target\site\jacoco\index.html")) {
-            Write-Error "JaCoCo report was not generated."
+            Write-Error "JaCoCo HTML report was not generated."
             exit 1
           }
 
