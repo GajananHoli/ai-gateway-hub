@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - "**"
+
   pull_request:
     branches:
       - main
+
   workflow_dispatch:
 
 jobs:
@@ -50,3 +52,15 @@ jobs:
           }
 
           Write-Host "JaCoCo report generated successfully."
+
+      - name: Upload JaCoCo Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/user-service/target/site/jacoco/
+
+      - name: Upload JaCoCo Execution Data
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-exec
+          path: backend/user-service/target/jacoco.exec
