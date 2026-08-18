@@ -71,4 +71,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          .\mvnw.cmd org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN"    
+          .\mvnw.cmd org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN" "-Dsonar.qualitygate.wait=true"    
