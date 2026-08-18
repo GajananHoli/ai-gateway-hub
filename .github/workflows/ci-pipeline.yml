@@ -64,3 +64,11 @@ jobs:
         with:
           name: jacoco-exec
           path: backend/user-service/target/jacoco.exec
+          
+      - name: SonarQube Analysis
+        working-directory: backend
+        shell: powershell
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          .\mvnw.cmd org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN"    
