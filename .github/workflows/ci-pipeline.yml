@@ -72,3 +72,40 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           .\mvnw.cmd org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN" "-Dsonar.qualitygate.wait=true"    
+          
+      - name: Build Docker image
+        working-directory: backend
+        shell: powershell
+        run: |
+          docker build -t ai-gateway-hub-gateway:${{ github.sha }} .
+
+      - name: Run Docker container
+        shell: powershell
+        run: |
+          docker run -d --name ai-gateway-hub-gateway-test -p 8080:8080 ai-gateway-hub-gateway:${{ github.sha }}
+
+      - name: Wait for application
+        shell: powershell
+        run: |
+          Start-Sleep -Seconds 15
+
+      - name: Docker health check
+        shell: powershell
+        run: |
+          $response = Invoke-RestMethod -Uri "http://localhost:8080/actuator/health"
+
+          Write-Host "Application status: $($response.status)"
+
+          if ($response.status -ne "UP") {
+            Write-Error "Application health check failed."
+            exit 1
+          }
+
+          Write-Host "Docker application health check PASSED."
+
+      - name: Cleanup Docker container
+        if: always()
+        shell: powershell
+        run: |
+          docker stop ai-gateway-hub-gateway-test 2>$null
+          docker rm ai-gateway-hub-gateway-test 2>$null   
