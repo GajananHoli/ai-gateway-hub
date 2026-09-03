@@ -85,7 +85,7 @@ jobs:
         working-directory: backend
         shell: powershell
         run: |
-          docker build -t ai-gateway-hub-gateway:${{ github.sha }} .
+          docker build --build-arg MAVEN_OPTS="-Dmaven.repo.local=.m2/repository" -t ai-gateway-hub-gateway .
 
       - name: Run Docker container
         shell: powershell

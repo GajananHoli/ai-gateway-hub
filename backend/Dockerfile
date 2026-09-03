@@ -6,11 +6,14 @@ FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /build
 
+# 1. Declare a build argument for the cache location
+ARG MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
+
 COPY . .
 
 RUN chmod +x mvnw
 
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests ${MAVEN_OPTS}
 
 ###############################
 # Stage 2 - Runtime
