@@ -85,12 +85,14 @@ jobs:
         working-directory: backend
         shell: powershell
         run: |
-          docker build --build-arg MAVEN_OPTS="-Dmaven.repo.local=.m2/repository" -t ai-gateway-hub-gateway .
+          # Removed the heavy MAVEN_OPTS build argument entirely
+          docker build -t ai-gateway-hub-gateway:latest .
 
       - name: Run Docker container
         shell: powershell
         run: |
-          docker run -d --name ai-gateway-hub-gateway-test -p 8080:8080 ai-gateway-hub-gateway:${{ github.sha }}
+          # Changed tag to match the built 'latest' tag above
+          docker run -d --name ai-gateway-hub-gateway-test -p 8080:8080 ai-gateway-hub-gateway:latest
 
       - name: Wait for application
         shell: powershell
