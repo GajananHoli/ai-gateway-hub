@@ -17,34 +17,52 @@ jobs:
 
     steps:
 
+      # -----------------------------------------
+      # 1. Checkout
+      # -----------------------------------------
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      # -----------------------------------------
+      # 2. Verify Java
+      # -----------------------------------------
       - name: Verify Java
         shell: powershell
         run: |
           java -version
 
+      # -----------------------------------------
+      # 3. Verify Maven Wrapper
+      # -----------------------------------------
       - name: Verify Maven Wrapper
         working-directory: backend
         shell: powershell
         run: |
           .\mvnw.cmd -version
-     
+
+      # -----------------------------------------
+      # 4. Cache Maven dependencies
+      # -----------------------------------------
       - name: Cache Maven packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-            path: ~/.m2/repository
-            key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            restore-keys: |
-                ${{ runner.os }}-maven-     
-          
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # -----------------------------------------
+      # 5. Run tests + JaCoCo
+      # -----------------------------------------
       - name: Run tests and generate JaCoCo report
         working-directory: backend
         shell: powershell
         run: |
           .\mvnw.cmd clean org.jacoco:jacoco-maven-plugin:0.8.13:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.13:report
 
+      # -----------------------------------------
+      # 6. Verify JaCoCo
+      # -----------------------------------------
       - name: Verify JaCoCo report
         working-directory: backend
         shell: powershell
@@ -61,48 +79,106 @@ jobs:
 
           Write-Host "JaCoCo report generated successfully."
 
+      # -----------------------------------------
+      # 7. Upload JaCoCo HTML report
+      # -----------------------------------------
       - name: Upload JaCoCo Report
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           path: backend/user-service/target/site/jacoco/
 
+      # -----------------------------------------
+      # 8. Upload JaCoCo execution data
+      # -----------------------------------------
       - name: Upload JaCoCo Execution Data
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-exec
           path: backend/user-service/target/jacoco.exec
-          
+
+      # -----------------------------------------
+      # 9. SonarQube
+      # -----------------------------------------
       - name: SonarQube Analysis
         working-directory: backend
         shell: powershell
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          .\mvnw.cmd org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN" "-Dsonar.qualitygate.wait=true"    
-          
+          .\mvnw.cmd org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=$env:SONAR_TOKEN" "-Dsonar.qualitygate.wait=true"
+
+      # -----------------------------------------
+      # 10. Build Gateway JAR
+      # -----------------------------------------
+      - name: Build Gateway JAR
+        working-directory: backend
+        shell: powershell
+        run: |
+          .\mvnw.cmd package -pl gateway-service -am -DskipTests
+
+      # -----------------------------------------
+      # 11. Verify Gateway JAR
+      # -----------------------------------------
+      - name: Verify Gateway JAR
+        working-directory: backend
+        shell: powershell
+        run: |
+          Write-Host "Checking Gateway target directory..."
+
+          if (!(Test-Path ".\gateway-service\target")) {
+            Write-Error "gateway-service/target directory was not generated."
+            exit 1
+          }
+
+          $jar = Get-ChildItem ".\gateway-service\target\*.jar" -ErrorAction SilentlyContinue
+
+          if (-not $jar) {
+            Write-Error "Gateway JAR was not generated."
+            exit 1
+          }
+
+          Write-Host "Gateway JAR found:"
+          $jar | ForEach-Object {
+            Write-Host $_.FullName
+          }
+
+      # -----------------------------------------
+      # 12. Build Docker image
+      # -----------------------------------------
       - name: Build Docker image
         working-directory: backend
         shell: powershell
         run: |
-          # Removed the heavy MAVEN_OPTS build argument entirely
-          docker build -t gateway-service -f gateway-service/Dockerfile .
+          docker build -t ai-gateway-hub-gateway:${{ github.sha }} .
 
+      # -----------------------------------------
+      # 13. Run Docker container
+      # -----------------------------------------
       - name: Run Docker container
         shell: powershell
         run: |
-          # Changed tag to match the built 'latest' tag above
-          docker run -d --name ai-gateway-hub-gateway-test -p 8080:8080 ai-gateway-hub-gateway:latest
+          docker run -d `
+            --name ai-gateway-hub-gateway-test `
+            -p 8080:8080 `
+            ai-gateway-hub-gateway:${{ github.sha }}
 
+      # -----------------------------------------
+      # 14. Wait for application
+      # -----------------------------------------
       - name: Wait for application
         shell: powershell
         run: |
           Start-Sleep -Seconds 15
 
+      # -----------------------------------------
+      # 15. Docker health check
+      # -----------------------------------------
       - name: Docker health check
         shell: powershell
         run: |
-          $response = Invoke-RestMethod -Uri "http://localhost:8080/actuator/health"
+          $response = Invoke-RestMethod `
+            -Uri "http://localhost:8080/actuator/health"
 
           Write-Host "Application status: $($response.status)"
 
@@ -113,9 +189,12 @@ jobs:
 
           Write-Host "Docker application health check PASSED."
 
+      # -----------------------------------------
+      # 16. Cleanup
+      # -----------------------------------------
       - name: Cleanup Docker container
         if: always()
         shell: powershell
         run: |
           docker stop ai-gateway-hub-gateway-test 2>$null
-          docker rm ai-gateway-hub-gateway-test 2>$null   
+          docker rm ai-gateway-hub-gateway-test 2>$null
