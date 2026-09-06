@@ -169,32 +169,70 @@ jobs:
       - name: Wait for application
         shell: powershell
         run: |
-          Start-Sleep -Seconds 15
+              Write-Host "Waiting for application..."
+              Start-Sleep -Seconds 30
 
       # -----------------------------------------
-      # 15. Docker health check
+      # 15. Docker diagnostics
+      # -----------------------------------------
+      - name: Docker diagnostics
+        if: always()
+        shell: powershell
+        run: |
+              Write-Host "===================================="
+              Write-Host "Docker container status"
+              Write-Host "===================================="
+              docker ps -a
+          
+              Write-Host "===================================="
+              Write-Host "Docker container logs"
+              Write-Host "===================================="
+              docker logs ai-gateway-hub-gateway-test
+          
+              Write-Host "===================================="
+              Write-Host "Port 8080 check"
+              Write-Host "===================================="
+              Test-NetConnection localhost -Port 8080
+       
+
+      # -----------------------------------------
+      # 16. Docker health check
       # -----------------------------------------
       - name: Docker health check
         shell: powershell
         run: |
-          $response = Invoke-RestMethod `
-            -Uri "http://localhost:8080/actuator/health"
-
-          Write-Host "Application status: $($response.status)"
-
-          if ($response.status -ne "UP") {
-            Write-Error "Application health check failed."
+          Write-Host "Checking application health..."
+      
+          try {
+            $response = Invoke-RestMethod `
+              -Uri "http://localhost:8080/actuator/health" `
+              -TimeoutSec 10
+      
+            Write-Host "Application status: $($response.status)"
+      
+            if ($response.status -ne "UP") {
+              Write-Error "Application health check failed."
+              exit 1
+            }
+      
+            Write-Host "Docker application health check PASSED."
+          }
+          catch {
+            Write-Error "Health check failed."
+            Write-Error $_.Exception.Message
             exit 1
           }
 
-          Write-Host "Docker application health check PASSED."
-
       # -----------------------------------------
-      # 16. Cleanup
+      # 17. Cleanup
       # -----------------------------------------
       - name: Cleanup Docker container
         if: always()
         shell: powershell
         run: |
+          Write-Host "Cleaning up Docker container..."
+      
           docker stop ai-gateway-hub-gateway-test 2>$null
           docker rm ai-gateway-hub-gateway-test 2>$null
+      
+          Write-Host "Docker cleanup completed."
