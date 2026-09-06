@@ -1,6 +1,3 @@
-target/
-**/target/
-
 .idea/
 .vscode/
 
@@ -14,3 +11,7 @@ logs/
 README.md
 
 Dockerfile.old
+
+mvnw
+mvnw.cmd
+.mvn/
