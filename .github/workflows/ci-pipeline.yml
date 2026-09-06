@@ -86,7 +86,7 @@ jobs:
         shell: powershell
         run: |
           # Removed the heavy MAVEN_OPTS build argument entirely
-          docker build -t ai-gateway-hub-gateway:latest .
+          docker build -t gateway-service -f gateway-service/Dockerfile .
 
       - name: Run Docker container
         shell: powershell
