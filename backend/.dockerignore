@@ -14,8 +14,4 @@ Dockerfile.old
 
 mvnw
 mvnw.cmd
-<<<<<<< HEAD
 .mvn/
-=======
-.mvn/
->>>>>>> 34e3b01 (e2e integration test and ci-pipeline)
