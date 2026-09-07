@@ -14,6 +14,10 @@ on:
 jobs:
   build-test-sonar:
     runs-on: self-hosted
+    
+    permissions:
+      contents: read
+      packages: write
 
     steps:
 
@@ -224,7 +228,34 @@ jobs:
           }
 
       # -----------------------------------------
-      # 17. Cleanup
+      # 17. Login to GitHub Container Registry
+      # -----------------------------------------
+      - name: Login to GitHub Container Registry
+        if: success()
+        shell: powershell
+        run: |
+            $env:CR_PAT = "${{ secrets.GITHUB_TOKEN }}"
+            $env:CR_PAT | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            
+            
+      # -----------------------------------------
+      # 18. Push Docker image to GHCR
+      # -----------------------------------------
+      - name: Push Docker image to GHCR
+      if: success()
+      shell: powershell
+      run: |
+        $image = "ghcr.io/${{ github.repository_owner }}/ai-gateway-hub-gateway:${{ github.sha }}"
+
+        docker tag ai-gateway-hub-gateway:${{ github.sha }} $image
+
+        docker push $image
+
+        Write-Host "Docker image pushed successfully:"
+        Write-Host $image     
+            
+      # -----------------------------------------
+      # 19. Cleanup
       # -----------------------------------------
       - name: Cleanup Docker container
         if: always()
