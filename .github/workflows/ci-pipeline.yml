@@ -232,11 +232,12 @@ jobs:
       # -----------------------------------------
       - name: Login to GitHub Container Registry
         if: success()
-        shell: powershell
-        run: |
-            $env:CR_PAT = "${{ github.token }}"
-            $env:CR_PAT | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-            
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+  
             
       # -----------------------------------------
       # 18. Push Docker image to GHCR
@@ -245,15 +246,15 @@ jobs:
         if: success()
         shell: powershell
         run: |
-            $image = "ghcr.io/${{ github.repository_owner }}/ai-gateway-hub-gateway:${{ github.sha }}"
+          $image = "ghcr.io/gajananholi/ai-gateway-hub-gateway:${{ github.sha }}"
 
-            docker tag ai-gateway-hub-gateway:${{ github.sha }} $image
+          docker tag ai-gateway-hub-gateway:${{ github.sha }} $image
 
-            docker push $image
+          docker push $image
 
-            Write-Host "Docker image pushed successfully:"
-            Write-Host $image     
-            
+          Write-Host "Docker image pushed successfully:"
+          Write-Host $image
+   
       # -----------------------------------------
       # 19. Cleanup
       # -----------------------------------------
