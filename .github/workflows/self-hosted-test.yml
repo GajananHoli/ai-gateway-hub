@@ -1,0 +1,44 @@
+name: Self Hosted Runner Test
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  test-runner:
+    runs-on: self-hosted
+
+    steps:
+      - name: Runner information
+        shell: powershell
+        run: |
+          Write-Host "================================="
+          Write-Host "Self-Hosted Runner Test"
+          Write-Host "================================="
+          Write-Host "Runner Name: $env:RUNNER_NAME"
+          Write-Host "Runner OS: $env:RUNNER_OS"
+          Write-Host "Runner Architecture: $env:RUNNER_ARCH"
+          Write-Host "Computer: $env:COMPUTERNAME"
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+          Write-Host "================================="
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test PowerShell
+        shell: powershell
+        run: |
+          Write-Host "PowerShell is working!"
+
+      - name: Test Java
+        shell: powershell
+        run: |
+          java -version
+
+      - name: Test Maven Wrapper
+        working-directory: backend
+        shell: powershell
+        run: |
+          .\mvnw.cmd -version

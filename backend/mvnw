@@ -293,3 +293,11 @@ mv -- "$TMP_DOWNLOAD_DIR/$actualDistributionDir" "$MAVEN_HOME" || [ -d "$MAVEN_H
 
 clean || :
 exec_maven "$@"
+
+$mvnw = Get-Content .\mvnw -Raw
+$mvnw = $mvnw -replace "`r`n", "`n"
+[System.IO.File]::WriteAllText(
+    (Resolve-Path .\mvnw),
+    $mvnw,
+    (New-Object System.Text.UTF8Encoding($false))
+)
