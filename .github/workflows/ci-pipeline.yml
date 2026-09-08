@@ -246,15 +246,30 @@ jobs:
         if: success()
         shell: powershell
         run: |
-          $image = "ghcr.io/gajananholi/ai-gateway-hub-gateway:${{ github.sha }}"
+            $image = "ghcr.io/gajananholi/ai-gateway-hub-gateway:${{ github.sha }}"
 
-          docker tag ai-gateway-hub-gateway:${{ github.sha }} $image
+            Write-Host "Tagging Docker image..."
+            docker tag "ai-gateway-hub-gateway:${{ github.sha }}" $image
 
-          docker push $image
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Docker tag failed."
+                exit $LASTEXITCODE
+            }
 
-          Write-Host "Docker image pushed successfully:"
-          Write-Host $image
-   
+            Write-Host "Pushing Docker image..."
+            docker push $image
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Docker push failed."
+                exit $LASTEXITCODE
+            }
+
+            Write-Host ""
+            Write-Host "Docker image pushed successfully:"
+            Write-Host $image
+
+            # Explicitly mark this PowerShell step successful
+            exit 0
       # -----------------------------------------
       # 19. Cleanup
       # -----------------------------------------
