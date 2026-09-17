@@ -120,6 +120,15 @@ jobs:
         shell: powershell
         run: |
           .\mvnw.cmd package -pl gateway-service -am -DskipTests
+          
+      # -----------------------------------------
+      # Build User Service JAR
+      # -----------------------------------------
+      - name: Build User Service JAR
+        working-directory: backend
+        shell: powershell
+        run: |
+          .\mvnw.cmd package -pl user-service -am -DskipTests
 
       # -----------------------------------------
       # 11. Verify Gateway JAR
@@ -147,6 +156,33 @@ jobs:
             Write-Host $_.FullName
           }
 
+
+      # -----------------------------------------
+      # Verify User Service JAR
+      # -----------------------------------------
+      - name: Verify User Service JAR
+        working-directory: backend
+        shell: powershell
+        run: |
+          Write-Host "Checking User Service target directory..."
+
+          if (!(Test-Path ".\user-service\target")) {
+            Write-Error "user-service/target directory was not generated."
+            exit 1
+          }
+
+          $jar = Get-ChildItem ".\user-service\target\*.jar" -ErrorAction SilentlyContinue
+
+          if (-not $jar) {
+            Write-Error "User Service JAR was not generated."
+            exit 1
+          }
+
+          Write-Host "User Service JAR found:"
+          $jar | ForEach-Object {
+            Write-Host $_.FullName
+          }
+
       # -----------------------------------------
       # 12. Build Docker image
       # -----------------------------------------
@@ -155,6 +191,50 @@ jobs:
         shell: powershell
         run: |
           docker build -t ai-gateway-hub-gateway:${{ github.sha }} .
+
+      # -----------------------------------------
+      # Build User Service Docker image
+      # -----------------------------------------
+      - name: Build User Service Docker image
+        working-directory: backend
+        shell: powershell
+        run: |
+          docker build `
+            -t ai-gateway-hub-user-service:${{ github.sha }} `
+            -f user-service/Dockerfile `
+            user-service
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "User Service Docker image build failed."
+            exit $LASTEXITCODE
+          }
+
+          Write-Host "User Service Docker image built successfully."
+          docker images ai-gateway-hub-user-servic .
+          
+      # -----------------------------------------
+      # Verify Docker images
+      # -----------------------------------------
+      - name: Verify Docker images
+        shell: powershell
+        run: |
+          Write-Host "Checking Gateway image..."
+          docker image inspect "ai-gateway-hub-gateway:${{ github.sha }}" | Out-Null
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Gateway Docker image was not found."
+            exit 1
+          }
+
+          Write-Host "Checking User Service image..."
+          docker image inspect "ai-gateway-hub-user-service:${{ github.sha }}" | Out-Null
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "User Service Docker image was not found."
+            exit 1
+          }
+
+          Write-Host "Both Docker images are available."
 
       # -----------------------------------------
       # 13. Run Docker container
@@ -239,37 +319,70 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
   
             
+
       # -----------------------------------------
-      # 18. Push Docker image to GHCR
+      # 18.Push Docker images to GHCR
       # -----------------------------------------
-      - name: Push Docker image to GHCR
+      - name: Push Docker images to GHCR
         if: success()
         shell: powershell
         run: |
-            $image = "ghcr.io/gajananholi/ai-gateway-hub-gateway:${{ github.sha }}"
+          $gatewayImage = "ghcr.io/gajananholi/ai-gateway-hub-gateway:${{ github.sha }}"
+          $userServiceImage = "ghcr.io/gajananholi/ai-gateway-hub-user-service:${{ github.sha }}"
 
-            Write-Host "Tagging Docker image..."
-            docker tag "ai-gateway-hub-gateway:${{ github.sha }}" $image
+          Write-Host "===================================="
+          Write-Host "Tagging Gateway image"
+          Write-Host "===================================="
 
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error "Docker tag failed."
-                exit $LASTEXITCODE
-            }
+          docker tag `
+            "ai-gateway-hub-gateway:${{ github.sha }}" `
+            $gatewayImage
 
-            Write-Host "Pushing Docker image..."
-            docker push $image
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Gateway Docker tag failed."
+            exit $LASTEXITCODE
+          }
 
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error "Docker push failed."
-                exit $LASTEXITCODE
-            }
+          Write-Host "===================================="
+          Write-Host "Tagging User Service image"
+          Write-Host "===================================="
 
-            Write-Host ""
-            Write-Host "Docker image pushed successfully:"
-            Write-Host $image
+          docker tag `
+            "ai-gateway-hub-user-service:${{ github.sha }}" `
+            $userServiceImage
 
-            # Explicitly mark this PowerShell step successful
-            exit 0
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "User Service Docker tag failed."
+            exit $LASTEXITCODE
+          }
+
+          Write-Host "===================================="
+          Write-Host "Pushing Gateway image"
+          Write-Host "===================================="
+
+          docker push $gatewayImage
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Gateway Docker push failed."
+            exit $LASTEXITCODE
+          }
+
+          Write-Host "===================================="
+          Write-Host "Pushing User Service image"
+          Write-Host "===================================="
+
+          docker push $userServiceImage
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "User Service Docker push failed."
+            exit $LASTEXITCODE
+          }
+
+          Write-Host ""
+          Write-Host "Both Docker images pushed successfully:"
+          Write-Host $gatewayImage
+          Write-Host $userServiceImage  
+      
       # -----------------------------------------
       # 19. Cleanup
       # -----------------------------------------
