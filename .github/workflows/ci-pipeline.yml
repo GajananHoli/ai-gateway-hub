@@ -259,24 +259,24 @@ jobs:
       # -----------------------------------------
       # 15. Docker diagnostics
       # -----------------------------------------
-      - name: Docker diagnostics
-        if: always()
-        shell: powershell
-        run: |
-              Write-Host "===================================="
-              Write-Host "Docker container status"
-              Write-Host "===================================="
-              docker ps -a
+    #  - name: Docker diagnostics
+    #    if: always()
+    #    shell: powershell
+    #    run: |
+             # Write-Host "===================================="
+             # Write-Host "Docker container status"
+             # Write-Host "===================================="
+             # docker ps -a
           
-              Write-Host "===================================="
-              Write-Host "Docker container logs"
-              Write-Host "===================================="
-              docker logs ai-gateway-hub-gateway-test
+             # Write-Host "===================================="
+             # Write-Host "Docker container logs"
+             # Write-Host "===================================="
+             # docker logs ai-gateway-hub-gateway-test
           
-              Write-Host "===================================="
-              Write-Host "Port 8080 check"
-              Write-Host "===================================="
-              Test-NetConnection localhost -Port 8080
+             # Write-Host "===================================="
+             # Write-Host "Port 8080 check"
+             # Write-Host "===================================="
+             # Test-NetConnection localhost -Port 8080
        
 
       # -----------------------------------------
