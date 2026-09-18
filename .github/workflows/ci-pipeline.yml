@@ -210,7 +210,7 @@ jobs:
           }
 
           Write-Host "User Service Docker image built successfully."
-          docker images ai-gateway-hub-user-servic .
+          docker images ai-gateway-hub-user-service
           
       # -----------------------------------------
       # Verify Docker images
